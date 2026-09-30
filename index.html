@@ -1,0 +1,1956 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#29251d">
+  <meta name="description" content="A curated digital library — academic works, classics, and contemporary reads in one place.">
+  <title>Arcana Library — A World of Books</title>
+  <style>
+    :root {
+      --ink: #29251d;
+      --ink-deep: #1d1a15;
+      --ink-soft: #3a382b;
+      --pink: #c3a47b;
+      --pink-bright: #dbc39c;
+      --text: #eee2ca;
+      --muted: #c5b79e;
+      --periwinkle: #b7976c;
+      --sage: #89946f;
+      --clay: #a96346;
+      --moss: #5f684f;
+      --paper: #eadfc7;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+        Baskerville, Georgia, serif;
+      --ease: cubic-bezier(.2, .78, .2, 1);
+      --mx: 0px;
+      --my: 0px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background: var(--ink);
+    }
+
+    body {
+      min-height: 100svh;
+      overflow: hidden;
+      color: var(--text);
+      font-family: var(--serif);
+      -webkit-font-smoothing: antialiased;
+      cursor: default;
+    }
+
+    button, a { font: inherit; }
+    button { color: inherit; }
+
+    /* ── Stage ── */
+    .stage {
+      position: relative;
+      isolation: isolate;
+      width: 100%;
+      min-height: 100svh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 49% 84%, rgba(117, 102, 71, .2), transparent 34%),
+        radial-gradient(circle at 14% 4%, rgba(100, 112, 77, .12), transparent 28%),
+        linear-gradient(180deg, #343025 0%, var(--ink) 48%, #211e18 100%);
+    }
+
+    .stage::after {
+      content: "";
+      position: absolute;
+      z-index: 30;
+      inset: 0;
+      pointer-events: none;
+      opacity: .14;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: fixed;
+      z-index: 50;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 26px 3.2vw;
+      pointer-events: none;
+    }
+
+    .brand {
+      color: var(--pink);
+      font-size: clamp(20px, 2.1vw, 28px);
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: -.035em;
+      line-height: 1;
+      text-decoration: none;
+      pointer-events: auto;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .icon-button, .ticket-button, .close-button, .pill, .book-card {
+      border: 0;
+      outline: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .icon-button, .ticket-button {
+      height: 50px;
+      border: 1px solid rgba(61, 49, 35, .18);
+      background: var(--paper);
+      color: #30291f;
+      box-shadow: 0 8px 26px rgba(28, 22, 14, .13);
+      transition: transform 240ms var(--ease), background-color 240ms ease;
+    }
+
+    .icon-button {
+      display: grid;
+      width: 50px;
+      place-items: center;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .menu-glyph {
+      position: relative;
+      width: 14px;
+      height: 10px;
+    }
+
+    .menu-glyph::before, .menu-glyph::after {
+      content: "";
+      position: absolute;
+      left: 1px;
+      width: 12px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+      transition: transform 300ms var(--ease), top 300ms var(--ease);
+    }
+
+    .menu-glyph::before { top: 2px; }
+    .menu-glyph::after  { top: 7px; }
+
+    [data-menu="open"] .menu-glyph::before { top: 5px; transform: rotate(45deg); }
+    [data-menu="open"] .menu-glyph::after  { top: 5px; transform: rotate(-45deg); }
+
+    .ticket-button {
+      display: inline-grid;
+      min-width: 138px;
+      padding: 0 25px;
+      place-items: center;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .icon-button:hover, .ticket-button:hover {
+      transform: translateY(-3px);
+      background: #f7edd9;
+    }
+
+    .icon-button:focus-visible, .ticket-button:focus-visible,
+    .close-button:focus-visible, .pill:focus-visible, .menu-link:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 4px;
+    }
+
+    /* ── Category pills (top filter bar) ── */
+    .category-bar {
+      position: fixed;
+      z-index: 48;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid rgba(238, 226, 202, .08);
+      border-radius: 999px;
+      background: rgba(42, 38, 29, .82);
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+
+    .cat-btn {
+      padding: 6px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: color 220ms ease, background 220ms ease, border-color 220ms ease;
+    }
+
+    .cat-btn:hover { color: var(--text); }
+    .cat-btn.active {
+      border-color: rgba(195, 164, 123, .35);
+      background: rgba(195, 164, 123, .14);
+      color: var(--pink);
+    }
+
+    /* ── Hero word ── */
+    .hero-word {
+      position: absolute;
+      z-index: 1;
+      top: 11.5vh;
+      left: 50%;
+      margin: 0;
+      color: var(--pink);
+      font-size: clamp(140px, 18vw, 280px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -.085em;
+      line-height: .84;
+      white-space: nowrap;
+      transform: translate3d(calc(-50% + var(--mx) * -.12), calc(var(--my) * -.12), 0);
+      transition: opacity 700ms ease, filter 700ms ease, transform 900ms var(--ease);
+      user-select: none;
+    }
+
+    /* ── Gallery (book rail) ── */
+    .gallery {
+      position: absolute;
+      z-index: 5;
+      inset: 0;
+      perspective: 1400px;
+      transform-style: flat;
+    }
+
+    /* 5-book layout positions */
+    .book-card {
+      --hover-y: 0px;
+      --local-x: 0px;
+      --local-y: 0px;
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w);
+      aspect-ratio: .672 / 1;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      transform:
+        translate3d(
+          calc(-50% + var(--local-x)),
+          calc(var(--hover-y) + var(--local-y)),
+          0
+        )
+        rotate(var(--r))
+        rotateY(var(--yaw));
+      transform-style: preserve-3d;
+      transition:
+        left 1100ms var(--ease),
+        top 1100ms var(--ease),
+        width 1100ms var(--ease),
+        opacity 500ms ease,
+        filter 500ms ease,
+        transform 520ms var(--ease);
+      will-change: transform, left, top, width;
+    }
+
+    /* 5 equidistant slots */
+    .book-card[data-slot="0"] { --x: 10%;  --y: 42%; --w: min(19vw, 260px); --r: -9deg;  --yaw: -8deg;  z-index: 1; }
+    .book-card[data-slot="1"] { --x: 28%;  --y: 37%; --w: min(22vw, 300px); --r: -4deg;  --yaw: -4deg;  z-index: 2; }
+    .book-card[data-slot="2"] { --x: 50%;  --y: 33%; --w: min(24vw, 330px); --r:  .5deg; --yaw: -2deg;  z-index: 3; }
+    .book-card[data-slot="3"] { --x: 72%;  --y: 37%; --w: min(22vw, 300px); --r:  4deg;  --yaw:  4deg;  z-index: 2; }
+    .book-card[data-slot="4"] { --x: 90%;  --y: 42%; --w: min(19vw, 260px); --r:  9deg;  --yaw:  8deg;  z-index: 1; }
+
+    .book-card:hover, .book-card[data-hovered="true"] {
+      --hover-y: -28px;
+      z-index: 8;
+    }
+
+    /* ── Book anatomy ── */
+    .book {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 800ms var(--ease);
+    }
+
+    .book-card:hover .book {
+      transform: scale(1.035) rotateX(-1.5deg);
+    }
+
+    .book-back, .page-block, .page-fan, .front-cover, .book-shadow {
+      position: absolute;
+      inset: 0;
+      border-radius: 3px 7px 7px 3px;
+    }
+
+    .book-shadow {
+      z-index: -2;
+      inset: 5% -4% -2% 4%;
+      border-radius: 12px;
+      background: rgba(24, 18, 10, .7);
+      filter: blur(22px);
+      opacity: .72;
+      transform: translate3d(18px, 28px, -60px);
+    }
+
+    .book-back {
+      z-index: 0;
+      background: var(--cover-color);
+      box-shadow: 0 18px 30px rgba(24, 18, 10, .4);
+      transform: translate3d(7px, 1px, -26px);
+    }
+
+    .page-block {
+      z-index: 1;
+      inset: 1.7% 1.4% 1.7% 3.8%;
+      overflow: visible;
+      border: 1px solid rgba(84, 68, 45, .25);
+      border-radius: 2px 5px 5px 2px;
+      background:
+        repeating-linear-gradient(0deg, rgba(105,86,58,.14) 0, rgba(105,86,58,.14) 1px, transparent 1px, transparent 2.8px),
+        linear-gradient(90deg, #cfc1a4 0%, #f2e8d2 14%, #e7dac0 87%, #cbb894 100%);
+      box-shadow: 7px 5px 16px rgba(31, 23, 13, .26);
+      transform: translate3d(7px, 1px, -12px);
+      transition: transform 1100ms var(--ease), inset 1100ms var(--ease);
+    }
+
+    .page-block::before {
+      content: "";
+      position: absolute;
+      top: -7px; right: 1px; left: 1px;
+      height: 8px;
+      border-radius: 2px 4px 0 0;
+      background: repeating-linear-gradient(90deg, #d9cbae 0, #d9cbae 2px, #f2e7cf 2px, #f2e7cf 5px);
+      transform: skewX(-8deg);
+      transform-origin: bottom left;
+    }
+
+    .page-block::after {
+      content: "";
+      position: absolute;
+      top: 0; right: -7px;
+      width: 8px; height: 100%;
+      border-radius: 0 4px 4px 0;
+      background: repeating-linear-gradient(0deg, #cbb995 0, #cbb995 1px, #eee3cd 1px, #eee3cd 3px);
+      box-shadow: 3px 2px 7px rgba(35, 26, 14, .18);
+      transform: skewY(-2deg);
+      transform-origin: left center;
+    }
+
+    .page-fan {
+      z-index: 2;
+      inset: 2.4% 2% 2.4% 4.3%;
+      pointer-events: none;
+      transform-style: preserve-3d;
+    }
+
+    .page-fan i {
+      position: absolute;
+      inset: 0;
+      display: block;
+      border: 1px solid rgba(102, 83, 55, .22);
+      border-radius: 2px 5px 5px 2px;
+      background:
+        linear-gradient(90deg, rgba(116,91,56,.22), transparent 9%),
+        repeating-linear-gradient(0deg, #f0e6d0 0, #f0e6d0 2px, #e6d8ba 2px, #e6d8ba 3px);
+      box-shadow: 3px 5px 10px rgba(37, 28, 16, .08);
+      opacity: 0;
+      transform: translate3d(0,0,0) rotateY(0);
+      transform-origin: 1.5% center;
+      transition: opacity 500ms ease, transform 1200ms var(--ease);
+    }
+
+    .front-cover {
+      z-index: 3;
+      overflow: hidden;
+      border: 1px solid rgba(238, 224, 194, .2);
+      background-color: var(--cover-color);
+      background-image: var(--cover);
+      background-position: center;
+      background-size: cover;
+      box-shadow:
+        0 25px 38px rgba(24, 18, 10, .4),
+        inset -12px 0 18px rgba(0,0,0,.16),
+        inset 4px 0 9px rgba(255,255,255,.12);
+      transform: translate3d(0, 0, 12px);
+      transform-origin: 1.5% center;
+      transform-style: preserve-3d;
+      transition: transform 1200ms var(--ease), box-shadow 600ms ease;
+    }
+
+    .front-cover::before {
+      content: "";
+      position: absolute;
+      z-index: 3; top: 0; bottom: 0; left: 0;
+      width: 5.5%;
+      background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(255,255,255,.08) 35%, rgba(0,0,0,.12) 75%, transparent);
+      mix-blend-mode: multiply;
+      opacity: .8;
+    }
+
+    .front-cover::after {
+      content: "";
+      position: absolute;
+      z-index: 4; inset: 0;
+      border: 3px solid rgba(255,255,255,.04);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    /* Cover artwork (gradient-based, no images needed) */
+    .cover-art {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cover-copy {
+      position: absolute;
+      z-index: 2;
+      inset: 5.8% 7.5% 5.5%;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      align-content: start;
+      color: var(--cover-ink);
+      text-align: center;
+      text-shadow: 0 1px 0 rgba(241, 226, 196, .24);
+    }
+
+    .cover-kicker {
+      font-size: clamp(7px, .65vw, 10px);
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .8;
+    }
+
+    .cover-title {
+      margin-top: 2.2%;
+      font-size: clamp(22px, 2.8vw, 46px);
+      font-weight: 600;
+      letter-spacing: -.055em;
+      line-height: .9;
+    }
+
+    .cover-subtitle {
+      margin-top: 3%;
+      font-size: clamp(8px, .85vw, 13px);
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: .035em;
+    }
+
+    .cover-author {
+      margin-top: 2%;
+      font-size: clamp(7px, .72vw, 11px);
+      font-weight: 500;
+      letter-spacing: .04em;
+      opacity: .75;
+    }
+
+    .cover-footer {
+      align-self: end;
+      padding-top: 3%;
+      border-top: 1px solid currentColor;
+      font-size: clamp(6px, .58vw, 8px);
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .7;
+    }
+
+    /* ── Open badge ── */
+    .open-badge {
+      position: absolute;
+      z-index: 6;
+      top: 47%;
+      left: 50%;
+      display: grid;
+      width: 80px;
+      height: 56px;
+      place-items: center;
+      color: #312a21;
+      background: #efe3ca;
+      clip-path: polygon(
+        3% 22%, 10% 8%, 25% 7%, 38% 1%, 51% 6%, 66% 2%,
+        77% 10%, 92% 11%, 96% 26%, 100% 39%, 95% 52%, 99% 67%,
+        88% 79%, 83% 93%, 68% 94%, 55% 100%, 42% 94%, 27% 98%,
+        17% 88%, 4% 84%, 5% 69%, 0 57%, 5% 43%, 1% 34%
+      );
+      font-size: 10px;
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: .12em;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(.76) rotate(-3deg);
+      transition: opacity 260ms ease, transform 420ms var(--ease), filter 260ms ease;
+      pointer-events: none;
+    }
+
+    .book-card:hover .open-badge,
+    .book-card[data-hovered="true"] .open-badge,
+    .book-card:focus-visible .open-badge {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1) rotate(-3deg);
+    }
+
+    .book-card:focus-visible { outline: 0; }
+    .book-card:focus-visible .open-badge {
+      filter: drop-shadow(0 7px 12px rgba(29,22,14,.34)) drop-shadow(0 0 8px rgba(224,190,137,.28));
+    }
+
+    /* ── Navigation arrows ── */
+    .nav-arrow {
+      position: fixed;
+      z-index: 46;
+      top: 50%;
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border: 1px solid rgba(195,164,123,.22);
+      border-radius: 50%;
+      background: rgba(42, 38, 29, .76);
+      color: var(--pink);
+      cursor: pointer;
+      font-size: 20px;
+      transform: translateY(-50%);
+      transition: background 220ms ease, transform 220ms var(--ease);
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+
+    .nav-arrow:hover { background: rgba(64, 58, 43, .92); transform: translateY(-52%); }
+    .nav-arrow.left  { left: 2.4vw; }
+    .nav-arrow.right { right: 2.4vw; }
+
+    /* ── Detail panel ── */
+    .detail-panel {
+      position: absolute;
+      z-index: 12;
+      top: 14.5%;
+      right: 4.5%;
+      width: min(47.5%, 620px);
+      opacity: 0;
+      transition: opacity 520ms ease 280ms;
+      pointer-events: none;
+    }
+
+    .detail-title {
+      margin: 0 0 24px;
+      color: var(--pink);
+      font-size: clamp(46px, 5vw, 74px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -.055em;
+      line-height: .96;
+    }
+
+    .detail-description {
+      max-width: 580px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(13px, 1.2vw, 16px);
+      line-height: 1.64;
+    }
+
+    .detail-scroll {
+      max-height: clamp(320px, calc(100svh - 430px), 580px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0 22px 76px 0;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 76px), transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 76px), transparent 100%);
+      scrollbar-color: rgba(198,139,140,.76) rgba(73,66,49,.35);
+      scrollbar-width: thin;
+    }
+
+    .detail-scroll::-webkit-scrollbar { width: 5px; }
+    .detail-scroll::-webkit-scrollbar-track { border-radius: 999px; background: rgba(73,66,49,.35); }
+    .detail-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(198,139,140,.76); }
+    .detail-scroll:focus-visible { border-radius: 8px; outline: 1px solid rgba(231,184,185,.7); outline-offset: 8px; }
+
+    .doc-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(220, 200, 164, .2);
+    }
+
+    .doc-label {
+      margin: 0 0 12px;
+      color: var(--pink);
+      font-size: 12px;
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 22px;
+      margin-top: 4px;
+    }
+
+    .detail-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .detail-meta-key {
+      color: rgba(197, 183, 158, .55);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .detail-meta-val {
+      color: var(--muted);
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      padding: 4px 12px;
+      border: 1px solid rgba(195,164,123,.22);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .06em;
+    }
+
+    .doc-review {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.58;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: max-content 1px max-content 1fr;
+      align-items: center;
+      gap: clamp(14px, 2vw, 24px);
+      margin-top: 18px;
+      color: var(--pink);
+    }
+
+    .stars { display: flex; gap: 8px; font-size: 22px; letter-spacing: .02em; line-height: 1; }
+    .stars .dim { color: #665f4d; }
+
+    .meta-divider { width: 1px; height: 26px; background: rgba(220,200,164,.28); }
+
+    .review-source, .year {
+      color: #bcae92;
+      font-size: 16px;
+      font-style: italic;
+      font-weight: 650;
+    }
+
+    .year { justify-self: end; }
+
+    .detail-rule {
+      height: 1px;
+      margin: 10px 0 18px;
+      border: 0;
+      background: rgba(220, 200, 164, .24);
+    }
+
+    /* ── Bottom dock ── */
+    .bottom-dock {
+      position: fixed;
+      z-index: 24;
+      right: 4.5%;
+      bottom: 24px;
+      width: min(47.5%, 620px);
+    }
+
+    .bottom-dock .meta-row  { margin: 0 10px; }
+    .bottom-dock .detail-rule { margin: 10px 8px 14px; }
+
+    .action-rail {
+      --action-inset: 8px;
+      display: flex;
+      align-items: center;
+      gap: var(--action-inset);
+      width: 100%;
+      padding: var(--action-inset);
+      border: 1px solid rgba(238,226,202,.07);
+      border-radius: 32px;
+      background: rgba(64, 58, 43, .88);
+      box-shadow: 0 16px 32px rgba(26, 20, 12, .2);
+      backdrop-filter: blur(12px);
+    }
+
+    .pill {
+      display: inline-flex;
+      flex: 1 1 0;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 54px;
+      padding: 0 16px;
+      border-radius: 24px;
+      background: var(--periwinkle);
+      color: #2e261d;
+      cursor: pointer;
+      font-size: 14px;
+      font-style: italic;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: transform 220ms var(--ease), filter 220ms ease, background 220ms ease;
+    }
+
+    .pill:hover { transform: translateY(-2px); filter: brightness(1.06); }
+
+    .pill.language { gap: 10px; background: var(--paper); }
+    .pill.language svg { width: 17px; height: 17px; }
+
+    .pill.icon-only {
+      flex: 0 0 54px;
+      width: 54px;
+      min-width: 54px;
+      padding: 0;
+      background: #565d45;
+      color: #f1e6cf;
+    }
+
+    .pill.icon-only svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: fill 220ms ease; }
+    .pill.icon-only[aria-pressed="true"] svg { fill: var(--pink); stroke: var(--pink); }
+
+    /* ── Close button ── */
+    .close-button {
+      position: absolute;
+      z-index: 52;
+      top: 30px;
+      left: 50%;
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.26);
+      border-radius: 50%;
+      background: rgba(42, 37, 28, .28);
+      color: var(--paper);
+      cursor: pointer;
+      font-size: 27px;
+      font-weight: 200;
+      opacity: 0;
+      transform: translate3d(-50%, -18px, 0) rotate(-45deg);
+      transition: opacity 400ms ease, transform 620ms var(--ease), background 220ms ease;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .close-button:hover { background: rgba(255,255,255,.08); }
+
+    /* ── Blossom field ── */
+    .blossom-field {
+      position: absolute;
+      z-index: 9;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 700ms ease 250ms;
+      pointer-events: none;
+    }
+
+    .blossom {
+      --blossom-size: 26px;
+      position: absolute;
+      top: -12vh;
+      left: var(--blossom-x);
+      width: var(--blossom-size);
+      height: var(--blossom-size);
+      opacity: .92;
+      transform-style: preserve-3d;
+      animation: blossomFall var(--blossom-duration) linear var(--blossom-delay) infinite;
+    }
+
+    .blossom i {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 42%; height: 60%;
+      border-radius: 72% 72% 58% 58%;
+      background:
+        radial-gradient(circle at 50% 82%, rgba(187,103,108,.9) 0 10%, transparent 11%),
+        linear-gradient(180deg, #f5d8d3 0%, #e6aaa9 74%, #c78184 100%);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,.42);
+      transform-origin: 50% 100%;
+    }
+
+    .blossom i:nth-child(1) { transform: translate(-50%,-100%) rotate(0deg); }
+    .blossom i:nth-child(2) { transform: translate(-50%,-100%) rotate(72deg); }
+    .blossom i:nth-child(3) { transform: translate(-50%,-100%) rotate(144deg); }
+    .blossom i:nth-child(4) { transform: translate(-50%,-100%) rotate(216deg); }
+    .blossom i:nth-child(5) { transform: translate(-50%,-100%) rotate(288deg); }
+
+    .blossom::after {
+      content: "";
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 18%; height: 18%;
+      border-radius: 50%;
+      background: #d9b46f;
+      box-shadow: 0 0 0 2px rgba(107,70,51,.18);
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes blossomFall {
+      0%   { transform: translate3d(0,-10vh,0) rotateX(18deg)  rotateZ(var(--blossom-r)); }
+      32%  { transform: translate3d(36px,34vh,0) rotateX(154deg) rotateZ(calc(var(--blossom-r) + 126deg)); }
+      68%  { transform: translate3d(-30px,78vh,0) rotateX(284deg) rotateZ(calc(var(--blossom-r) + 272deg)); }
+      100% { transform: translate3d(20px,122vh,0) rotateX(430deg) rotateZ(calc(var(--blossom-r) + 430deg)); }
+    }
+
+    /* ── Menu overlay ── */
+    .menu-layer {
+      position: fixed;
+      z-index: 40;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 47%, rgba(111,91,61,.22), transparent 42%),
+        rgba(30, 27, 21, .95);
+      opacity: 0;
+      transition: opacity 460ms ease;
+      pointer-events: none;
+      backdrop-filter: blur(18px);
+    }
+
+    .menu-list { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; padding: 0; list-style: none; }
+
+    .menu-link {
+      display: inline-block;
+      color: var(--pink);
+      font-size: clamp(48px, 6.5vw, 90px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -.055em;
+      line-height: 1.05;
+      text-decoration: none;
+      transform: translateY(24px);
+      transition: color 200ms ease, transform 500ms var(--ease);
+    }
+
+    .menu-link:hover { color: #fff; }
+
+    [data-menu="open"] .menu-layer { opacity: 1; pointer-events: auto; }
+    [data-menu="open"] .menu-link  { transform: translateY(0); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      z-index: 80;
+      bottom: 22px;
+      left: 50%;
+      max-width: calc(100vw - 32px);
+      padding: 12px 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      background: rgba(36, 32, 25, .88);
+      color: var(--paper);
+      box-shadow: 0 12px 36px rgba(0,0,0,.22);
+      font-size: 13px;
+      font-weight: 650;
+      opacity: 0;
+      transform: translate(-50%, 20px);
+      transition: opacity 250ms ease, transform 350ms var(--ease);
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+    }
+
+    .toast[data-show="true"] { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ── Page indicator dots ── */
+    .page-dots {
+      position: fixed;
+      z-index: 46;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(195,164,123,.3);
+      transition: background 300ms ease, transform 300ms ease;
+    }
+
+    .dot.active {
+      background: var(--pink);
+      transform: scale(1.3);
+    }
+
+    /* ── Detail-mode states ── */
+    [data-mode="detail"] .hero-word {
+      opacity: 0;
+      filter: blur(16px);
+      transform: translate3d(-50%, -34px, 0) scale(.9);
+    }
+
+    [data-mode="detail"] .book-card:not(.selected) {
+      opacity: 0;
+      filter: blur(10px);
+      transform: translate3d(-50%, 60vh, -200px) rotate(var(--r)) scale(.8);
+      pointer-events: none;
+    }
+
+    [data-mode="detail"] .book-card.selected {
+      --hover-y: 0px;
+      --local-x: 0px;
+      --local-y: 0px;
+      --detail-yaw: -5deg;
+      --detail-pitch: 0deg;
+      left: 27%;
+      top: 50%;
+      width: min(28vw, 390px);
+      z-index: 14;
+      cursor: default;
+      transform: translate3d(-50%, -50%, 0) rotate(-3deg);
+      pointer-events: none;
+    }
+
+    [data-mode="detail"] .book-card.selected .book {
+      transform: scale(1.02) rotateX(var(--detail-pitch)) rotateY(var(--detail-yaw));
+      transition-duration: 170ms;
+      transition-timing-function: cubic-bezier(.2, .78, .2, 1);
+    }
+
+    [data-mode="detail"] .book-card.selected .front-cover {
+      box-shadow: 25px 26px 44px rgba(29,21,11,.34), inset -12px 0 18px rgba(0,0,0,.13), inset 4px 0 9px rgba(255,255,255,.1);
+      transform: translate3d(0, 0, 18px) rotateY(-29deg);
+    }
+
+    [data-mode="detail"] .book-card.selected .page-block {
+      inset: 1.9% 1.5% 1.9% 4.4%;
+      transform: translate3d(6px, 1px, -11px);
+    }
+
+    [data-mode="detail"] .book-card.selected .page-fan i { opacity: 1; }
+    [data-mode="detail"] .book-card.selected .page-fan i:nth-child(1) { transform: translate3d(0,0,10px) rotateY(-4deg); }
+    [data-mode="detail"] .book-card.selected .page-fan i:nth-child(2) { transform: translate3d(0,0,11px) rotateY(-8deg); }
+    [data-mode="detail"] .book-card.selected .page-fan i:nth-child(3) { transform: translate3d(0,0,12px) rotateY(-12deg); }
+    [data-mode="detail"] .book-card.selected .page-fan i:nth-child(4) { transform: translate3d(0,0,13px) rotateY(-16deg); }
+
+    [data-mode="detail"] .book-card.selected .open-badge { opacity: 0; }
+    [data-mode="detail"] .detail-panel { opacity: 1; pointer-events: auto; }
+    [data-mode="gallery"] .detail-panel { transition-duration: 160ms; transition-delay: 0ms; }
+
+    [data-mode="detail"] .close-button {
+      opacity: 1;
+      transform: translate3d(-50%, 0, 0) rotate(0);
+      pointer-events: auto;
+    }
+
+    [data-mode="detail"] .blossom-field { opacity: 1; }
+    [data-mode="detail"] .nav-arrow { opacity: 0; pointer-events: none; }
+    [data-mode="detail"] .category-bar { opacity: 0; pointer-events: none; }
+    [data-mode="detail"] .page-dots { opacity: 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .stage { min-height: 100svh; overflow: hidden; }
+      .topbar { padding: 20px; }
+      .icon-button, .ticket-button { height: 44px; }
+      .icon-button { width: 44px; }
+      .ticket-button { min-width: auto; padding: 0 18px; }
+      .hero-word { top: 19vh; font-size: clamp(100px, 24vw, 200px); }
+
+      .book-card[data-slot="0"] { --x: 10%; --y: 42%; --w: min(38vw, 220px); }
+      .book-card[data-slot="1"] { --x: 30%; --y: 38%; --w: min(42vw, 240px); }
+      .book-card[data-slot="2"] { --x: 50%; --y: 34%; --w: min(46vw, 260px); }
+      .book-card[data-slot="3"] { --x: 70%; --y: 38%; --w: min(42vw, 240px); }
+      .book-card[data-slot="4"] { --x: 90%; --y: 42%; --w: min(38vw, 220px); }
+
+      [data-mode="detail"] .stage { min-height: calc(100svh + 760px); overflow-y: auto; }
+      [data-mode="detail"] .book-card.selected { left: 50%; top: 50svh; width: min(54vw, 300px); }
+
+      .detail-panel { top: calc(100svh + 44px); right: 7%; left: 7%; width: auto; padding-bottom: 130px; }
+      .detail-scroll { max-height: min(500px, calc(100svh - 290px)); }
+      .detail-title { font-size: clamp(42px, 9vw, 66px); }
+      .bottom-dock { right: 18px; bottom: 18px; left: 18px; width: auto; }
+      .action-rail { overflow-x: auto; scrollbar-width: none; }
+      .action-rail::-webkit-scrollbar { display: none; }
+      .pill { min-width: 120px; }
+      .pill.icon-only { min-width: 54px; }
+      .category-bar { display: none; }
+      .nav-arrow { display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .brand { font-size: 20px; }
+      .ticket-button { display: none; }
+      .hero-word { top: 22vh; font-size: 34vw; }
+
+      .book-card[data-slot="0"] { --x: 2%;  --y: 44%; --w: 60vw; }
+      .book-card[data-slot="1"] { --x: 26%; --y: 40%; --w: 64vw; }
+      .book-card[data-slot="2"] { --x: 50%; --y: 38%; --w: 68vw; }
+      .book-card[data-slot="3"] { --x: 74%; --y: 40%; --w: 64vw; }
+      .book-card[data-slot="4"] { --x: 98%; --y: 44%; --w: 60vw; }
+
+      [data-mode="detail"] .stage { min-height: calc(100svh + 760px); }
+      [data-mode="detail"] .book-card.selected { width: min(63vw, 290px); }
+
+      .detail-panel { right: 18px; left: 18px; }
+      .detail-scroll { padding-right: 12px; }
+      .pill { min-width: 0; min-height: 50px; padding: 0 8px; font-size: 12px; }
+      .pill.language svg { display: none; }
+      .pill.icon-only { flex-basis: 50px; width: 50px; min-width: 50px; }
+      .meta-row { grid-template-columns: max-content 1px 1fr; }
+      .year { display: none; }
+      .close-button { top: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        transition-delay: 0ms !important;
+      }
+    }
+  </style>
+</head>
+<body data-mode="gallery" data-menu="closed">
+  <main class="stage" aria-label="Arcana Digital Library">
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Arcana Library home">Arcana Library</a>
+      <div class="nav-actions">
+        <button class="icon-button" id="menuButton" type="button" aria-label="Open menu" aria-expanded="false">
+          <span class="menu-glyph" aria-hidden="true"></span>
+        </button>
+        <button class="ticket-button" type="button" data-toast="Browse our full collection.">Browse All</button>
+      </div>
+    </header>
+
+    <!-- Category filter bar -->
+    <div class="category-bar" id="categoryBar" role="group" aria-label="Filter by category">
+      <button class="cat-btn active" data-category="all">All</button>
+      <button class="cat-btn" data-category="science">Science</button>
+      <button class="cat-btn" data-category="literature">Literature</button>
+      <button class="cat-btn" data-category="philosophy">Philosophy</button>
+      <button class="cat-btn" data-category="history">History</button>
+      <button class="cat-btn" data-category="technology">Technology</button>
+      <button class="cat-btn" data-category="fiction">Fiction</button>
+    </div>
+
+    <h1 class="hero-word" aria-hidden="true">Library</h1>
+
+    <!-- Navigation arrows -->
+    <button class="nav-arrow left" id="prevBtn" aria-label="Previous books">&#8592;</button>
+    <button class="nav-arrow right" id="nextBtn" aria-label="Next books">&#8594;</button>
+
+    <!-- 5-slot gallery (populated by JS) -->
+    <section class="gallery" aria-label="Book collection" id="gallery"></section>
+
+    <!-- Detail panel -->
+    <section class="detail-panel" id="detailPanel" aria-live="polite" aria-hidden="true" inert>
+      <h2 class="detail-title" id="detailTitle"></h2>
+      <div class="detail-scroll" id="detailScroll" tabindex="0" aria-label="Book details">
+        <p class="detail-description" id="detailDescription"></p>
+
+        <section class="doc-section" aria-labelledby="metaLabel">
+          <p class="doc-label" id="metaLabel">About this book</p>
+          <div class="detail-meta" id="detailMeta"></div>
+        </section>
+
+        <section class="doc-section" aria-labelledby="tagsLabel">
+          <p class="doc-label" id="tagsLabel">Topics</p>
+          <div class="detail-tags" id="detailTags"></div>
+        </section>
+
+        <section class="doc-section" aria-labelledby="excerptLabel">
+          <p class="doc-label" id="excerptLabel">Editorial note</p>
+          <p class="doc-review" id="detailExcerpt"></p>
+        </section>
+      </div>
+
+      <div class="bottom-dock">
+        <div class="meta-row" aria-label="Rating and year">
+          <div class="stars" id="detailStars" aria-label="Rating"></div>
+          <span class="meta-divider" aria-hidden="true"></span>
+          <span class="review-source" id="detailCategory"></span>
+          <span class="year" id="detailYear"></span>
+        </div>
+        <hr class="detail-rule">
+        <div class="action-rail" aria-label="Book actions">
+          <button class="pill language" type="button" data-toast="Opening in your preferred language.">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M3 12h18M12 3c2.2 2.4 3.3 5.4 3.3 9S14.2 18.6 12 21c-2.2-2.4-3.3-5.4-3.3-9S9.8 5.4 12 3Z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+            Read Now
+          </button>
+          <button class="pill" type="button" data-toast="Added to your reading list.">Reading List</button>
+          <button class="pill icon-only" id="saveButton" type="button" aria-label="Bookmark" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.8 4.2h10.4v15.6L12 16.6l-5.2 3.2V4.2Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <button class="close-button" id="closeButton" type="button" aria-label="Close detail view" tabindex="-1">×</button>
+
+    <!-- Blossoms -->
+    <div class="blossom-field" aria-hidden="true">
+      <span class="blossom" style="--blossom-x:4%;  --blossom-size:28px; --blossom-r:18deg;  --blossom-duration:10s;   --blossom-delay:-4s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:16%; --blossom-size:18px; --blossom-r:74deg;  --blossom-duration:8.5s;  --blossom-delay:-1s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:31%; --blossom-size:24px; --blossom-r:-20deg; --blossom-duration:11s;   --blossom-delay:-7s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:44%; --blossom-size:16px; --blossom-r:48deg;  --blossom-duration:9.5s;  --blossom-delay:-5s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:58%; --blossom-size:26px; --blossom-r:12deg;  --blossom-duration:12s;   --blossom-delay:-8s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:69%; --blossom-size:20px; --blossom-r:92deg;  --blossom-duration:9s;    --blossom-delay:-3s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:79%; --blossom-size:30px; --blossom-r:32deg;  --blossom-duration:11.5s; --blossom-delay:-6s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:89%; --blossom-size:21px; --blossom-r:-14deg; --blossom-duration:10.5s; --blossom-delay:-9s;"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="blossom" style="--blossom-x:96%; --blossom-size:15px; --blossom-r:56deg;  --blossom-duration:8s;    --blossom-delay:-2s;"><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+
+    <nav class="menu-layer" id="menuLayer" aria-label="Site menu" inert>
+      <ul class="menu-list">
+        <li><a class="menu-link" href="#" data-menu-close>Collection</a></li>
+        <li><a class="menu-link" href="#" data-menu-close data-toast="Your reading shelf.">My Shelf</a></li>
+        <li><a class="menu-link" href="#" data-menu-close data-toast="Search across 500+ titles.">Search</a></li>
+        <li><a class="menu-link" href="#" data-menu-close data-toast="Browse by subject, author, or year.">Catalogue</a></li>
+        <li><a class="menu-link" href="#" data-menu-close data-toast="Coming soon: curated reading paths.">Paths</a></li>
+      </ul>
+    </nav>
+  </main>
+
+  <!-- Page indicator dots -->
+  <div class="page-dots" id="pageDots" aria-hidden="true"></div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      // ─────────────────────────────────────────────────────────────
+      // BOOK CATALOGUE
+      // Each book: id, title, author, year, category, coverColor,
+      //   coverInk, coverGradient (CSS), kicker, subtitle,
+      //   footer, description, meta, tags, excerpt, stars
+      // ─────────────────────────────────────────────────────────────
+      const catalogue = [
+        // ── SCIENCE ──────────────────────────────────────────────
+        {
+          id: "brief-history-of-time",
+          title: "A Brief History of Time",
+          author: "Stephen Hawking",
+          year: "1988",
+          category: "science",
+          coverColor: "#1a2540",
+          coverInk: "#d4e4ff",
+          coverGradient: "radial-gradient(ellipse at 30% 20%, #0d1b4a 0%, #1a2540 40%, #0a0f22 100%)",
+          kicker: "Cosmology",
+          subtitle: "From the Big Bang to Black Holes",
+          footer: "Physics · Time · Space",
+          description: "Hawking takes the reader on a journey through time — from our understanding of the universe at its smallest scale to the vastness of intergalactic space, exploring the nature of time itself.",
+          meta: [{ key: "Pages", val: "212" }, { key: "Publisher", val: "Bantam Books" }, { key: "Language", val: "English" }],
+          tags: ["Cosmology", "Physics", "Black Holes", "Time", "Popular Science"],
+          excerpt: "One of the most important popular science books ever written. Hawking explains complex ideas with disarming clarity, inviting every curious mind to contemplate the universe's deepest questions.",
+          stars: 5
+        },
+        {
+          id: "sapiens",
+          title: "Sapiens",
+          author: "Yuval Noah Harari",
+          year: "2011",
+          category: "history",
+          coverColor: "#2d1a0a",
+          coverInk: "#f5d8a0",
+          coverGradient: "linear-gradient(160deg, #4a2c0e 0%, #2d1a0a 55%, #1a0e06 100%)",
+          kicker: "World History",
+          subtitle: "A Brief History of Humankind",
+          footer: "Evolution · Culture · Empire",
+          description: "A bold, provocative narrative of humanity's journey from insignificant savanna-dwelling apes to rulers of the global ecosystem, tracing revolutions in cognition, agriculture, and industry.",
+          meta: [{ key: "Pages", val: "443" }, { key: "Publisher", val: "Harper" }, { key: "Language", val: "English" }],
+          tags: ["History", "Anthropology", "Evolution", "Culture", "Society"],
+          excerpt: "Harari's sweeping narrative reframes human history as a story shaped by collective fictions — money, religion, nations — that bind large groups together in pursuit of shared goals.",
+          stars: 5
+        },
+        {
+          id: "on-the-origin",
+          title: "On the Origin of Species",
+          author: "Charles Darwin",
+          year: "1859",
+          category: "science",
+          coverColor: "#1c3220",
+          coverInk: "#c8e8c2",
+          coverGradient: "linear-gradient(145deg, #2a4a30 0%, #1c3220 50%, #0f1d14 100%)",
+          kicker: "Biology · Classic",
+          subtitle: "The Preservation of Favoured Races in the Struggle for Life",
+          footer: "Evolution · Natural Selection",
+          description: "Darwin's landmark work introduced the scientific theory of evolution by means of natural selection, fundamentally changing how humanity understands life on Earth.",
+          meta: [{ key: "Pages", val: "502" }, { key: "Publisher", val: "John Murray" }, { key: "Language", val: "English" }],
+          tags: ["Biology", "Evolution", "Classic", "Natural History", "Science"],
+          excerpt: "A monument of scientific thought, Darwin's argument is built from thousands of carefully observed facts, assembled with a patience and precision that remains a model of scientific writing.",
+          stars: 5
+        },
+        {
+          id: "thinking-fast-slow",
+          title: "Thinking, Fast and Slow",
+          author: "Daniel Kahneman",
+          year: "2011",
+          category: "science",
+          coverColor: "#3a1c2a",
+          coverInk: "#f0c8d8",
+          coverGradient: "linear-gradient(135deg, #5a2c42 0%, #3a1c2a 50%, #200f18 100%)",
+          kicker: "Psychology",
+          subtitle: "Two systems that shape our judgement",
+          footer: "Cognition · Bias · Decision",
+          description: "Nobel laureate Daniel Kahneman reveals the two systems of thought — fast, intuitive, and emotional vs slow, deliberate, and logical — that drive the way we think and make choices.",
+          meta: [{ key: "Pages", val: "499" }, { key: "Publisher", val: "Farrar, Straus" }, { key: "Language", val: "English" }],
+          tags: ["Psychology", "Behavioural Economics", "Decision Making", "Cognitive Bias"],
+          excerpt: "A transformative account of the mind, Kahneman's book draws on decades of research to show how our cognitive shortcuts lead to systematic errors — and how to recognize them.",
+          stars: 5
+        },
+        {
+          id: "the-selfish-gene",
+          title: "The Selfish Gene",
+          author: "Richard Dawkins",
+          year: "1976",
+          category: "science",
+          coverColor: "#1a2d1e",
+          coverInk: "#b8f0c8",
+          coverGradient: "radial-gradient(ellipse at 60% 40%, #2a4a2e 0%, #1a2d1e 60%, #0d1812 100%)",
+          kicker: "Evolutionary Biology",
+          subtitle: "The Gene's-Eye View of Evolution",
+          footer: "Gene · Meme · Selection",
+          description: "Dawkins revolutionized our understanding of evolution with the argument that genes, not organisms, are the true units of natural selection. It also coined the concept of the meme.",
+          meta: [{ key: "Pages", val: "360" }, { key: "Publisher", val: "Oxford Univ. Press" }, { key: "Language", val: "English" }],
+          tags: ["Genetics", "Evolution", "Biology", "Classic", "Memes"],
+          excerpt: "Lucid, provocative, and beautifully written — Dawkins builds an entire worldview from the replicator's perspective, one that still sparks debate half a century after its publication.",
+          stars: 4
+        },
+
+        // ── LITERATURE ───────────────────────────────────────────
+        {
+          id: "1984",
+          title: "Nineteen Eighty-Four",
+          author: "George Orwell",
+          year: "1949",
+          category: "literature",
+          coverColor: "#1e1e1e",
+          coverInk: "#e0d0b0",
+          coverGradient: "linear-gradient(180deg, #2e2e2e 0%, #1e1e1e 60%, #0a0a0a 100%)",
+          kicker: "Classic Fiction",
+          subtitle: "War is Peace. Freedom is Slavery.",
+          footer: "Dystopia · Power · Language",
+          description: "Orwell's searing vision of a totalitarian future remains the defining political novel of the twentieth century — a world of doublethink, perpetual war, and the annihilation of the self.",
+          meta: [{ key: "Pages", val: "328" }, { key: "Publisher", val: "Secker & Warburg" }, { key: "Language", val: "English" }],
+          tags: ["Dystopia", "Classic", "Political Fiction", "Satire", "Surveillance"],
+          excerpt: "Few novels have so thoroughly entered the cultural imagination. Orwell's language — Newspeak, doublethink, Room 101 — has become a permanent part of how we talk about power.",
+          stars: 5
+        },
+        {
+          id: "pride-prejudice",
+          title: "Pride and Prejudice",
+          author: "Jane Austen",
+          year: "1813",
+          category: "literature",
+          coverColor: "#3d1f34",
+          coverInk: "#f5e0f8",
+          coverGradient: "radial-gradient(ellipse at 40% 30%, #5a2e50 0%, #3d1f34 55%, #1e0f1a 100%)",
+          kicker: "Classic Romance",
+          subtitle: "It is a truth universally acknowledged",
+          footer: "Society · Marriage · Wit",
+          description: "Austen's masterpiece of social comedy follows the spirited Elizabeth Bennet as she navigates love, class, and family in Regency England — with devastating wit and unforgettable characters.",
+          meta: [{ key: "Pages", val: "432" }, { key: "Publisher", val: "T. Egerton" }, { key: "Language", val: "English" }],
+          tags: ["Classic", "Romance", "Social Comedy", "Regency England", "Austen"],
+          excerpt: "Jane Austen's irony is so finely calibrated that the novel rewards each re-reading. Darcy and Elizabeth remain literature's most satisfying couple because their love is earned, not given.",
+          stars: 5
+        },
+        {
+          id: "hundred-years",
+          title: "One Hundred Years of Solitude",
+          author: "Gabriel García Márquez",
+          year: "1967",
+          category: "literature",
+          coverColor: "#3a2a0e",
+          coverInk: "#f8e8b0",
+          coverGradient: "linear-gradient(155deg, #5a4010 0%, #3a2a0e 55%, #1c1308 100%)",
+          kicker: "Magical Realism",
+          subtitle: "Seven Generations of the Buendía Family",
+          footer: "Memory · Myth · Colombia",
+          description: "A Nobel Prize–winning epic that blends the magical with the mundane, following the Buendía family across a century in the mythical town of Macondo — a microcosm of Latin American history.",
+          meta: [{ key: "Pages", val: "417" }, { key: "Publisher", val: "Editorial Sudamericana" }, { key: "Language", val: "Spanish / English" }],
+          tags: ["Magical Realism", "Latin American", "Epic", "Family Saga", "Nobel Prize"],
+          excerpt: "García Márquez's prose flows like a river that is simultaneously ordinary and miraculous. No other novel has so perfectly fused private feeling with public history.",
+          stars: 5
+        },
+        {
+          id: "the-great-gatsby",
+          title: "The Great Gatsby",
+          author: "F. Scott Fitzgerald",
+          year: "1925",
+          category: "literature",
+          coverColor: "#142840",
+          coverInk: "#b8e0ff",
+          coverGradient: "linear-gradient(160deg, #1e3c5a 0%, #142840 55%, #080f18 100%)",
+          kicker: "American Classic",
+          subtitle: "The Pursuit of the American Dream",
+          footer: "Jazz Age · Wealth · Longing",
+          description: "Set in the glittering excess of the 1920s, Fitzgerald's novel captures the hollow heart of the American Dream through the tragedy of Jay Gatsby and his obsession with the past.",
+          meta: [{ key: "Pages", val: "180" }, { key: "Publisher", val: "Scribner" }, { key: "Language", val: "English" }],
+          tags: ["Classic", "American Literature", "Jazz Age", "Social Critique", "Tragedy"],
+          excerpt: "Short and perfect, Gatsby is one of those rare novels whose prose style is itself an argument — lush and exact, evoking a world built on illusion while quietly mourning its passing.",
+          stars: 5
+        },
+        {
+          id: "crime-punishment",
+          title: "Crime and Punishment",
+          author: "Fyodor Dostoevsky",
+          year: "1866",
+          category: "literature",
+          coverColor: "#200820",
+          coverInk: "#e8c0e8",
+          coverGradient: "radial-gradient(ellipse at 50% 60%, #38143a 0%, #200820 55%, #0c0410 100%)",
+          kicker: "Russian Classic",
+          subtitle: "A Novel of Guilt and Redemption",
+          footer: "Psychology · Morality · Russia",
+          description: "Dostoevsky's psychological masterpiece follows a young ex-student who commits murder and is then tormented by his own conscience — a profound study of guilt, suffering, and redemption.",
+          meta: [{ key: "Pages", val: "671" }, { key: "Publisher", val: "The Russian Messenger" }, { key: "Language", val: "Russian / English" }],
+          tags: ["Russian Literature", "Psychological Fiction", "Classic", "Philosophy", "Redemption"],
+          excerpt: "Dostoevsky conducts the reader directly into Raskolnikov's fractured mind with an intensity that has never been matched. Every re-reading yields another layer of the novel's moral architecture.",
+          stars: 5
+        },
+
+        // ── PHILOSOPHY ───────────────────────────────────────────
+        {
+          id: "republic",
+          title: "The Republic",
+          author: "Plato",
+          year: "380 BC",
+          category: "philosophy",
+          coverColor: "#28200a",
+          coverInk: "#f0e090",
+          coverGradient: "linear-gradient(145deg, #40340e 0%, #28200a 55%, #141005 100%)",
+          kicker: "Ancient Philosophy",
+          subtitle: "On Justice, the Ideal State, and the Soul",
+          footer: "Justice · Knowledge · Form",
+          description: "Plato's foundational dialogue explores the nature of justice, the ideal city-state, the philosopher-king, and the allegory of the cave — forming the bedrock of Western political philosophy.",
+          meta: [{ key: "Pages", val: "368" }, { key: "Publisher", val: "Various" }, { key: "Language", val: "Ancient Greek / English" }],
+          tags: ["Philosophy", "Politics", "Ethics", "Ancient Greece", "Plato"],
+          excerpt: "After 2,400 years, The Republic retains its power to disturb as much as to inspire. The cave allegory alone has generated an entire literature of commentary and reaction.",
+          stars: 5
+        },
+        {
+          id: "meditations",
+          title: "Meditations",
+          author: "Marcus Aurelius",
+          year: "c. 161 AD",
+          category: "philosophy",
+          coverColor: "#2a1a08",
+          coverInk: "#e8c890",
+          coverGradient: "linear-gradient(160deg, #3e2810 0%, #2a1a08 55%, #140c04 100%)",
+          kicker: "Stoic Philosophy",
+          subtitle: "Private Notes of a Roman Emperor",
+          footer: "Virtue · Duty · Impermanence",
+          description: "The private journal of a Roman Emperor and philosopher, written to himself as exercises in Stoic practice — a guide to endurance, duty, and equanimity in the face of human suffering.",
+          meta: [{ key: "Pages", val: "254" }, { key: "Publisher", val: "Various" }, { key: "Language", val: "Greek / English" }],
+          tags: ["Stoicism", "Philosophy", "Self-Help", "Ancient Rome", "Ethics"],
+          excerpt: "Meditations is unlike any other philosophical text — not a treatise but a private discipline. Its directness and honesty across 1,800 years make it feel remarkably contemporary.",
+          stars: 5
+        },
+        {
+          id: "beyond-good-evil",
+          title: "Beyond Good and Evil",
+          author: "Friedrich Nietzsche",
+          year: "1886",
+          category: "philosophy",
+          coverColor: "#1a0808",
+          coverInk: "#f0c0b0",
+          coverGradient: "radial-gradient(ellipse at 40% 20%, #3c1010 0%, #1a0808 55%, #0a0404 100%)",
+          kicker: "German Philosophy",
+          subtitle: "Prelude to a Philosophy of the Future",
+          footer: "Morality · Will · Culture",
+          description: "Nietzsche's critique of past philosophers and their moral assumptions, introducing key concepts such as the will to power, perspectivism, and the master–slave morality dichotomy.",
+          meta: [{ key: "Pages", val: "240" }, { key: "Publisher", val: "C. G. Naumann" }, { key: "Language", val: "German / English" }],
+          tags: ["Nietzsche", "Morality", "Philosophy", "Ethics", "Culture Critique"],
+          excerpt: "Nietzsche's aphoristic style is either an irritant or an intoxicant — but the acuity of his diagnoses of Western morality remains unmatched by any subsequent philosopher.",
+          stars: 4
+        },
+
+        // ── TECHNOLOGY ───────────────────────────────────────────
+        {
+          id: "clean-code",
+          title: "Clean Code",
+          author: "Robert C. Martin",
+          year: "2008",
+          category: "technology",
+          coverColor: "#101c10",
+          coverInk: "#90e890",
+          coverGradient: "linear-gradient(145deg, #182818 0%, #101c10 55%, #081008 100%)",
+          kicker: "Software Craft",
+          subtitle: "A Handbook of Agile Software Craftsmanship",
+          footer: "Code · Quality · Practice",
+          description: "Uncle Bob's landmark guide to writing code that is readable, maintainable, and elegant — covering naming, functions, comments, formatting, and the principles of professional software development.",
+          meta: [{ key: "Pages", val: "431" }, { key: "Publisher", val: "Prentice Hall" }, { key: "Language", val: "English" }],
+          tags: ["Programming", "Software Engineering", "Best Practices", "Craftsmanship"],
+          excerpt: "Clean Code changed how a generation of developers think about their work. Its insistence that code is for humans first and machines second remains the essential principle of good software.",
+          stars: 5
+        },
+        {
+          id: "structure-interpretation",
+          title: "Structure and Interpretation",
+          author: "Abelson & Sussman",
+          year: "1996",
+          category: "technology",
+          coverColor: "#1a1030",
+          coverInk: "#c0b0f8",
+          coverGradient: "radial-gradient(ellipse at 30% 30%, #2a1850 0%, #1a1030 55%, #0c0818 100%)",
+          kicker: "Computer Science",
+          subtitle: "of Computer Programs (SICP)",
+          footer: "Abstraction · Computation · Lisp",
+          description: "The legendary MIT textbook — known as the Wizard Book — that teaches the essence of computation through Scheme, covering abstraction, recursion, interpreters, and metalinguistic analysis.",
+          meta: [{ key: "Pages", val: "657" }, { key: "Publisher", val: "MIT Press" }, { key: "Language", val: "English" }],
+          tags: ["Computer Science", "Programming", "Scheme", "MIT", "Functional"],
+          excerpt: "SICP is not a book about programming languages — it is a book about thinking computationally. No other text has shaped so many computer scientists' fundamental intuitions.",
+          stars: 5
+        },
+        {
+          id: "the-pragmatic-programmer",
+          title: "The Pragmatic Programmer",
+          author: "Hunt & Thomas",
+          year: "2019",
+          category: "technology",
+          coverColor: "#2a1a06",
+          coverInk: "#f8d890",
+          coverGradient: "linear-gradient(150deg, #402810 0%, #2a1a06 55%, #140c03 100%)",
+          kicker: "Software Development",
+          subtitle: "Your Journey to Mastery",
+          footer: "Craft · Pragmatism · Growth",
+          description: "A guide to thinking and working as a pragmatic programmer — covering the philosophy, attitudes, and best practices that lead to a long and effective career in software development.",
+          meta: [{ key: "Pages", val: "352" }, { key: "Publisher", val: "Addison-Wesley" }, { key: "Language", val: "English" }],
+          tags: ["Programming", "Career", "Software", "Best Practices", "Philosophy"],
+          excerpt: "The Pragmatic Programmer endures because its advice is drawn from the texture of real work rather than idealized theory. It reads as a letter from a wiser future self.",
+          stars: 5
+        },
+        {
+          id: "deep-learning",
+          title: "Deep Learning",
+          author: "Goodfellow, Bengio, Courville",
+          year: "2016",
+          category: "technology",
+          coverColor: "#0a1828",
+          coverInk: "#90c8f8",
+          coverGradient: "radial-gradient(ellipse at 50% 50%, #102238 0%, #0a1828 55%, #050c14 100%)",
+          kicker: "Machine Learning",
+          subtitle: "The Definitive Textbook",
+          footer: "Neural Nets · AI · Mathematics",
+          description: "The authoritative textbook on deep learning, covering the mathematical foundations, key architectures, and training methods that underlie modern artificial intelligence systems.",
+          meta: [{ key: "Pages", val: "800" }, { key: "Publisher", val: "MIT Press" }, { key: "Language", val: "English" }],
+          tags: ["AI", "Machine Learning", "Deep Learning", "Neural Networks", "Mathematics"],
+          excerpt: "For anyone who wants to understand modern AI at the level of its mathematics, this is the indispensable reference — comprehensive, precise, and freely available online.",
+          stars: 4
+        },
+
+        // ── FICTION ──────────────────────────────────────────────
+        {
+          id: "dune",
+          title: "Dune",
+          author: "Frank Herbert",
+          year: "1965",
+          category: "fiction",
+          coverColor: "#3a2806",
+          coverInk: "#f8e090",
+          coverGradient: "linear-gradient(155deg, #5a3e08 0%, #3a2806 55%, #1c1403 100%)",
+          kicker: "Science Fiction · Epic",
+          subtitle: "The Desert Planet, Arrakis",
+          footer: "Ecology · Power · Prophecy",
+          description: "Herbert's masterwork of speculative fiction chronicles the saga of Paul Atreides, heir to a noble family thrust into stewardship of the galaxy's most vital and dangerous planet.",
+          meta: [{ key: "Pages", val: "688" }, { key: "Publisher", val: "Chilton Books" }, { key: "Language", val: "English" }],
+          tags: ["Science Fiction", "Epic", "Ecology", "Politics", "Hugo Award"],
+          excerpt: "Dune's world-building is unrivalled in science fiction — a complete ecology, religion, politics, and history that feels genuinely inhabited rather than constructed for narrative convenience.",
+          stars: 5
+        },
+        {
+          id: "the-lord-of-the-rings",
+          title: "The Lord of the Rings",
+          author: "J. R. R. Tolkien",
+          year: "1954",
+          category: "fiction",
+          coverColor: "#182c10",
+          coverInk: "#c8e8a0",
+          coverGradient: "linear-gradient(145deg, #244418 0%, #182c10 55%, #0c1808 100%)",
+          kicker: "High Fantasy · Epic",
+          subtitle: "One Ring to Rule Them All",
+          footer: "Fellowship · Courage · Hope",
+          description: "The foundational work of modern fantasy literature — Tolkien's epic of the Fellowship of the Ring, the destruction of the One Ring, and the fates of Middle-earth's peoples.",
+          meta: [{ key: "Pages", val: "1,178" }, { key: "Publisher", val: "Allen & Unwin" }, { key: "Language", val: "English" }],
+          tags: ["Fantasy", "Epic", "Classic", "Mythology", "Adventure"],
+          excerpt: "Tolkien created not just a story but a world — with its own languages, histories, and cosmology. No work of fantasy has since escaped its gravitational influence.",
+          stars: 5
+        },
+        {
+          id: "neuromancer",
+          title: "Neuromancer",
+          author: "William Gibson",
+          year: "1984",
+          category: "fiction",
+          coverColor: "#0a1830",
+          coverInk: "#80f0ff",
+          coverGradient: "radial-gradient(ellipse at 40% 40%, #102840 0%, #0a1830 55%, #040c18 100%)",
+          kicker: "Cyberpunk",
+          subtitle: "The Sky Above the Port Was the Color of Television",
+          footer: "Cyberspace · AI · Corporate Power",
+          description: "The novel that invented cyberpunk — Gibson's noir thriller follows washed-up hacker Case through a neon-lit future of corporate warfare, artificial intelligence, and simulated reality.",
+          meta: [{ key: "Pages", val: "271" }, { key: "Publisher", val: "Ace Books" }, { key: "Language", val: "English" }],
+          tags: ["Cyberpunk", "Science Fiction", "AI", "Future Noir", "Hugo Award"],
+          excerpt: "Gibson coined the word 'cyberspace' and with it conjured an entire aesthetic. Neuromancer's fractured, electric prose is inseparable from the world it describes.",
+          stars: 5
+        },
+
+        // ── HISTORY ──────────────────────────────────────────────
+        {
+          id: "guns-germs-steel",
+          title: "Guns, Germs, and Steel",
+          author: "Jared Diamond",
+          year: "1997",
+          category: "history",
+          coverColor: "#1e300a",
+          coverInk: "#c8e890",
+          coverGradient: "linear-gradient(155deg, #2c4610 0%, #1e300a 55%, #0e1805 100%)",
+          kicker: "World History",
+          subtitle: "The Fates of Human Societies",
+          footer: "Geography · Civilization · Fate",
+          description: "Diamond investigates why some civilizations conquered others, arguing that the answer lies not in racial superiority but in geographical, biological, and environmental differences.",
+          meta: [{ key: "Pages", val: "498" }, { key: "Publisher", val: "W. W. Norton" }, { key: "Language", val: "English" }],
+          tags: ["History", "Anthropology", "Geography", "Civilization", "Pulitzer Prize"],
+          excerpt: "Diamond's central insight — that geography, not genetics, explains human inequality — remains provocative and contested. The breadth of evidence he marshals is genuinely staggering.",
+          stars: 4
+        },
+        {
+          id: "history-of-western-philosophy",
+          title: "History of Western Philosophy",
+          author: "Bertrand Russell",
+          year: "1945",
+          category: "history",
+          coverColor: "#20182c",
+          coverInk: "#d8c8f8",
+          coverGradient: "radial-gradient(ellipse at 50% 30%, #302048 0%, #20182c 55%, #100c18 100%)",
+          kicker: "Philosophy History",
+          subtitle: "From the Pre-Socratics to the Moderns",
+          footer: "Reason · Ideas · Time",
+          description: "Russell's sweeping narrative of Western philosophical thought — opinionated, witty, and brilliantly written — covers twenty-five centuries of ideas with characteristic clarity and erudition.",
+          meta: [{ key: "Pages", val: "895" }, { key: "Publisher", val: "Simon & Schuster" }, { key: "Language", val: "English" }],
+          tags: ["Philosophy", "History", "Western Thought", "Classic", "Russell"],
+          excerpt: "Russell's history is a masterpiece of popularization. He never condescends, but he always illuminates. Even where his judgments are idiosyncratic, they force the reader to think harder.",
+          stars: 5
+        },
+        {
+          id: "the-second-world-war",
+          title: "The Second World War",
+          author: "Winston Churchill",
+          year: "1948",
+          category: "history",
+          coverColor: "#1a1010",
+          coverInk: "#e8c8a0",
+          coverGradient: "linear-gradient(145deg, #2a1818 0%, #1a1010 55%, #0c0808 100%)",
+          kicker: "Military History",
+          subtitle: "As Told by Its Principal Architect",
+          footer: "War · Leadership · Survival",
+          description: "Churchill's six-volume personal account of the war he helped shape — from the gathering storm to the peace — combining statesman's memoir with gripping narrative history.",
+          meta: [{ key: "Pages", val: "4,736" }, { key: "Publisher", val: "Cassell & Co" }, { key: "Language", val: "English" }],
+          tags: ["History", "WWII", "Churchill", "Military", "Nobel Prize in Literature"],
+          excerpt: "Churchill brings to history what he brought to the war itself: iron will, enormous scope, and prose that is simultaneously formal and viscerally alive. A Nobel-winning work for good reason.",
+          stars: 5
+        }
+      ];
+
+      // ─────────────────────────────────────────────────────────────
+      // COVER GRADIENT PAINTER (CSS-based, no external images)
+      // ─────────────────────────────────────────────────────────────
+      function buildCoverSVGBackground(book) {
+        // We embed the gradient as an inline SVG background image
+        return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='${encodeURIComponent(adjustHex(book.coverColor, 30))}'/%3E%3Cstop offset='1' stop-color='${encodeURIComponent(adjustHex(book.coverColor, -20))}'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='600' fill='url(%23g)'/%3E%3C/svg%3E")`;
+      }
+
+      function adjustHex(hex, amount) {
+        const num = parseInt(hex.replace('#',''), 16);
+        const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+        const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // STATE
+      // ─────────────────────────────────────────────────────────────
+      let currentCategory = 'all';
+      let filteredBooks = [...catalogue];
+      let pageOffset = 0;          // which book sits in slot 0
+      const SLOTS = 5;
+
+      const body       = document.body;
+      const stage      = document.querySelector('.stage');
+      const gallery    = document.querySelector('#gallery');
+      const detailPanel     = document.querySelector('#detailPanel');
+      const detailTitle     = document.querySelector('#detailTitle');
+      const detailScroll    = document.querySelector('#detailScroll');
+      const detailDescription = document.querySelector('#detailDescription');
+      const detailMeta      = document.querySelector('#detailMeta');
+      const detailTags      = document.querySelector('#detailTags');
+      const detailExcerpt   = document.querySelector('#detailExcerpt');
+      const detailStars     = document.querySelector('#detailStars');
+      const detailCategory  = document.querySelector('#detailCategory');
+      const detailYear      = document.querySelector('#detailYear');
+      const closeButton     = document.querySelector('#closeButton');
+      const menuButton      = document.querySelector('#menuButton');
+      const menuLayer       = document.querySelector('#menuLayer');
+      const saveButton      = document.querySelector('#saveButton');
+      const toast           = document.querySelector('#toast');
+      const prevBtn         = document.querySelector('#prevBtn');
+      const nextBtn         = document.querySelector('#nextBtn');
+      const pageDots        = document.querySelector('#pageDots');
+      const categoryBar     = document.querySelector('#categoryBar');
+
+      let selectedCard  = null;
+      let selectedBook  = null;
+      let toastTimer    = 0;
+      let raf           = 0;
+      let pointerX      = 0;
+      let pointerY      = 0;
+      let pointerClientX = -10000;
+      let pointerClientY = -10000;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      // ─────────────────────────────────────────────────────────────
+      // TOAST
+      // ─────────────────────────────────────────────────────────────
+      function showToast(msg) {
+        clearTimeout(toastTimer);
+        toast.textContent = msg;
+        toast.dataset.show = 'true';
+        toastTimer = setTimeout(() => { toast.dataset.show = 'false'; }, 1800);
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // PAGE DOTS
+      // ─────────────────────────────────────────────────────────────
+      function renderDots() {
+        pageDots.innerHTML = '';
+        const pages = Math.max(1, filteredBooks.length - SLOTS + 1);
+        const cur   = pageOffset;
+        for (let i = 0; i < pages; i++) {
+          const dot = document.createElement('span');
+          dot.className = 'dot' + (i === cur ? ' active' : '');
+          pageDots.appendChild(dot);
+        }
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // GALLERY RENDER
+      // ─────────────────────────────────────────────────────────────
+      function renderGallery() {
+        gallery.innerHTML = '';
+        const visible = filteredBooks.slice(pageOffset, pageOffset + SLOTS);
+
+        visible.forEach((book, slotIdx) => {
+          const card = document.createElement('button');
+          card.className  = 'book-card';
+          card.type       = 'button';
+          card.dataset.slot = String(slotIdx);
+          card.dataset.bookId = book.id;
+          card.setAttribute('aria-label', `Open ${book.title} details`);
+          card.style.cssText = `--cover-color:${book.coverColor};`;
+
+          card.innerHTML = `
+            <span class="book" aria-hidden="true">
+              <span class="book-shadow"></span>
+              <span class="book-back"></span>
+              <span class="page-block"></span>
+              <span class="page-fan"><i></i><i></i><i></i><i></i></span>
+              <span class="front-cover">
+                <svg class="cover-art" viewBox="0 0 200 298" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="grad-${book.id}" x1="0" y1="0" x2="0.6" y2="1">
+                      <stop offset="0%" stop-color="${adjustHex(book.coverColor, 35)}"/>
+                      <stop offset="100%" stop-color="${adjustHex(book.coverColor, -15)}"/>
+                    </linearGradient>
+                    <filter id="noise-${book.id}">
+                      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+                      <feColorMatrix type="saturate" values="0"/>
+                      <feBlend in="SourceGraphic" mode="overlay" result="blend"/>
+                    </filter>
+                  </defs>
+                  <rect width="200" height="298" fill="url(#grad-${book.id})"/>
+                  <rect width="200" height="298" fill="transparent" filter="url(#noise-${book.id})" opacity="0.09"/>
+                  <!-- Decorative lines -->
+                  <rect x="12" y="12" width="176" height="274" rx="2" fill="none" stroke="${book.coverInk}" stroke-width="0.5" opacity="0.25"/>
+                  <rect x="18" y="18" width="164" height="262" rx="1" fill="none" stroke="${book.coverInk}" stroke-width="0.3" opacity="0.15"/>
+                  <!-- Category ornament -->
+                  <circle cx="100" cy="64" r="22" fill="${book.coverInk}" opacity="0.07"/>
+                  <circle cx="100" cy="64" r="16" fill="none" stroke="${book.coverInk}" stroke-width="0.6" opacity="0.2"/>
+                </svg>
+                <span class="cover-copy" style="--cover-ink:${book.coverInk}">
+                  <span class="cover-kicker">${book.kicker}</span>
+                  <span class="cover-title">${book.title}</span>
+                  <span class="cover-subtitle">${book.subtitle}</span>
+                  <span class="cover-author">${book.author}</span>
+                  <span class="cover-footer">${book.footer}</span>
+                </span>
+              </span>
+              <span class="open-badge">Open</span>
+            </span>
+          `;
+
+          card.addEventListener('click',        () => selectBook(card, book));
+          card.addEventListener('pointerenter', () => { card.dataset.hovered = 'true'; });
+          card.addEventListener('pointerleave', () => { card.dataset.hovered = 'false'; });
+
+          gallery.appendChild(card);
+        });
+
+        renderDots();
+        updateNavArrows();
+      }
+
+      function updateNavArrows() {
+        prevBtn.disabled = pageOffset === 0;
+        nextBtn.disabled = pageOffset >= filteredBooks.length - SLOTS;
+        prevBtn.style.opacity = prevBtn.disabled ? '0.3' : '1';
+        nextBtn.style.opacity = nextBtn.disabled ? '0.3' : '1';
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // CATEGORY FILTER
+      // ─────────────────────────────────────────────────────────────
+      categoryBar.addEventListener('click', e => {
+        const btn = e.target.closest('.cat-btn');
+        if (!btn) return;
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.category;
+        filteredBooks   = currentCategory === 'all' ? [...catalogue] : catalogue.filter(b => b.category === currentCategory);
+        pageOffset      = 0;
+        renderGallery();
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // NAVIGATION
+      // ─────────────────────────────────────────────────────────────
+      prevBtn.addEventListener('click', () => {
+        if (pageOffset > 0) { pageOffset -= 1; renderGallery(); }
+      });
+
+      nextBtn.addEventListener('click', () => {
+        if (pageOffset < filteredBooks.length - SLOTS) { pageOffset += 1; renderGallery(); }
+      });
+
+      // Keyboard arrow navigation on gallery
+      document.addEventListener('keydown', e => {
+        if (body.dataset.mode !== 'gallery') return;
+        if (e.key === 'ArrowRight') nextBtn.click();
+        if (e.key === 'ArrowLeft')  prevBtn.click();
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // PARALLAX
+      // ─────────────────────────────────────────────────────────────
+      function updateParallax() {
+        raf = 0;
+        if (reducedMotion.matches) return;
+
+        if (body.dataset.mode === 'detail' && selectedCard) {
+          const bounds   = selectedCard.getBoundingClientRect();
+          const bx       = bounds.left + bounds.width  / 2;
+          const by       = bounds.top  + bounds.height / 2;
+          const inView   = pointerClientX >= 0 && pointerClientX <= innerWidth &&
+                           pointerClientY >= 0 && pointerClientY <= innerHeight;
+          const rx = inView ? Math.max(-1, Math.min(1, (pointerClientX - bx) / Math.max(bx, 1))) : -5 / 16;
+          const ry = inView ? Math.max(-1, Math.min(1, (pointerClientY - by) / Math.max(by, 1))) : 0;
+          selectedCard.style.setProperty('--detail-yaw',   `${rx * 16}deg`);
+          selectedCard.style.setProperty('--detail-pitch', `${ry * -10}deg`);
+          return;
+        }
+
+        if (body.dataset.mode !== 'gallery') return;
+
+        document.documentElement.style.setProperty('--mx', `${pointerX * 11}px`);
+        document.documentElement.style.setProperty('--my', `${pointerY * 8}px`);
+
+        document.querySelectorAll('.book-card').forEach((card, i) => {
+          const depth = i === 2 ? 1 : .58;
+          card.style.setProperty('--local-x', `${pointerX * 15 * depth}px`);
+          card.style.setProperty('--local-y', `${pointerY * 9  * depth}px`);
+        });
+      }
+
+      window.addEventListener('pointermove', e => {
+        pointerX       = e.clientX / innerWidth  - .5;
+        pointerY       = e.clientY / innerHeight - .5;
+        pointerClientX = e.clientX;
+        pointerClientY = e.clientY;
+        if (!raf) raf  = requestAnimationFrame(updateParallax);
+      }, { passive: true });
+
+      window.addEventListener('pointerleave', () => {
+        pointerX = pointerY = 0;
+        pointerClientX = pointerClientY = -10000;
+        if (!raf) raf = requestAnimationFrame(updateParallax);
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // BOOK DETAIL
+      // ─────────────────────────────────────────────────────────────
+      function renderStars(n) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+          html += `<span class="${i <= n ? '' : 'dim'}">${i <= n ? '✦' : '◇'}</span>`;
+        }
+        return html;
+      }
+
+      function selectBook(card, book) {
+        if (body.dataset.mode === 'detail') return;
+
+        selectedCard = card;
+        selectedBook = book;
+        selectedCard.style.setProperty('--detail-yaw',   '-5deg');
+        selectedCard.style.setProperty('--detail-pitch', '0deg');
+
+        // Populate panel
+        detailTitle.textContent       = book.title;
+        detailDescription.textContent = book.description;
+        detailStars.innerHTML         = renderStars(book.stars);
+        detailCategory.textContent    = book.category.charAt(0).toUpperCase() + book.category.slice(1);
+        detailYear.textContent        = book.year;
+        detailExcerpt.textContent     = book.excerpt;
+
+        detailMeta.innerHTML = book.meta.map(m =>
+          `<div class="detail-meta-item">
+            <span class="detail-meta-key">${m.key}</span>
+            <span class="detail-meta-val">${m.val}</span>
+          </div>`
+        ).join('');
+
+        detailTags.innerHTML = book.tags.map(t =>
+          `<span class="tag">${t}</span>`
+        ).join('');
+
+        detailScroll.scrollTop = 0;
+
+        // Toggle selected class
+        document.querySelectorAll('.book-card').forEach(c =>
+          c.classList.toggle('selected', c === card)
+        );
+        document.querySelectorAll('.book-card').forEach(c => { c.tabIndex = -1; });
+
+        body.dataset.mode = 'detail';
+        detailPanel.setAttribute('aria-hidden', 'false');
+        detailPanel.inert = false;
+        closeButton.tabIndex = 0;
+        saveButton.setAttribute('aria-pressed', 'false');
+
+        setTimeout(() => {
+          closeButton.focus({ preventScroll: true });
+          if (innerWidth > 900) stage.scrollTop = 0;
+        }, reducedMotion.matches ? 0 : 700);
+      }
+
+      function closeDetail() {
+        if (body.dataset.mode !== 'detail') return;
+        body.dataset.mode = 'gallery';
+        detailPanel.setAttribute('aria-hidden', 'true');
+        detailPanel.inert = true;
+        closeButton.tabIndex = -1;
+        const lastCard = selectedCard;
+        lastCard?.style.setProperty('--detail-yaw',   '-5deg');
+        lastCard?.style.setProperty('--detail-pitch', '0deg');
+        setTimeout(() => {
+          document.querySelectorAll('.book-card').forEach(c => c.classList.remove('selected'));
+          document.querySelectorAll('.book-card').forEach(c => { c.tabIndex = 0; });
+          selectedCard = selectedBook = null;
+          lastCard?.focus({ preventScroll: true });
+          if (innerWidth > 900) stage.scrollTop = 0;
+        }, reducedMotion.matches ? 0 : 700);
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // MENU
+      // ─────────────────────────────────────────────────────────────
+      function toggleMenu(force) {
+        const willOpen = typeof force === 'boolean' ? force : body.dataset.menu !== 'open';
+        body.dataset.menu = willOpen ? 'open' : 'closed';
+        menuLayer.inert   = !willOpen;
+        menuButton.setAttribute('aria-expanded', String(willOpen));
+        menuButton.setAttribute('aria-label', willOpen ? 'Close menu' : 'Open menu');
+      }
+
+      closeButton.addEventListener('click', closeDetail);
+      menuButton.addEventListener('click', () => toggleMenu());
+      saveButton.addEventListener('click', () => {
+        const saved = saveButton.getAttribute('aria-pressed') !== 'true';
+        saveButton.setAttribute('aria-pressed', String(saved));
+        showToast(saved ? 'Bookmarked to your shelf.' : 'Removed from your shelf.');
+      });
+
+      document.addEventListener('click', e => {
+        const tt = e.target.closest('[data-toast]');
+        if (tt) { e.preventDefault(); showToast(tt.dataset.toast); }
+        if (e.target.closest('[data-menu-close]')) toggleMenu(false);
+      });
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (body.dataset.menu === 'open') toggleMenu(false);
+          else closeDetail();
+        }
+      });
+
+      // ─────────────────────────────────────────────────────────────
+      // INIT
+      // ─────────────────────────────────────────────────────────────
+      renderGallery();
+    })();
+  </script>
+</body>
+</html>
